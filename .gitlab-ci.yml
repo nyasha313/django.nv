@@ -21,13 +21,22 @@ test:
   script:
     - echo "This is a test step"
 
-integration:
-  stage: integration
-  script:
-    - echo "This is an integration step"
-    - exit 1
-  allow_failure: true # Even if the job fails, continue to the next stages
+  zap_baseline:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: master
 
+      - name: ZAP Scan
+        uses: zaproxy/action-baseline@v0.4.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          docker_name: 'owasp/zap2docker-stable:2.10.0'
+          target: ${{ secrets.PROD_URL }}
+         
 prod:
   stage: prod
   script:
